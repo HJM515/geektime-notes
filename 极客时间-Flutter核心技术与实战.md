@@ -113,3 +113,83 @@ Skia 保证了同一套代码调用在 Android 和 iOS 平台上的渲染效果�
 2. 绘制：布局后按深度优选机制，将所有渲染对象绘制到不同的图层；重绘边界机制避免无关内容置于统一图层引起不必要的重绘。
 3. 合成：将所有图层根据大小、层级、透明度等规则计算最终显示效果，将相同的图层归类合并，简化渲染树。
 4. 渲染：将合成后的几何图层数据交由Skia引擎加工成二维图像数据，最后由GPU渲染。
+
+
+
+## 06 Dart基础语法与类型变量
+
+Dart 中使用 var 定义变量时，表示类型是交由编译器推断决定的。在默认情况下，未初始化的变量的值都是 null。
+
+Dart 是类型安全的语言，所有类型都是对象类型，继承自顶层类型 Object，一切变量的值都是类的实例。
+
+### num、bool、String
+
+num 数值类型，两种子类init 、double。基本运算符 + 、- 、* 、/、%、~/、<=、>=、==、abs()、round()。dart:math库提供了三角函数、指数、对数、平方根等高级函数。
+
+bool 布尔类型，true false，都是编译时常量。不能使用 if (nonbooleanValue) 隐私类型转换判断，必须显示的比较，因为Dart是类型安全的。
+
+String 字符串类型，可以使用${ express }在字符串中嵌入变量或表达式，如果只有一个标识符 {} 可省略。
+
+### List、Map
+
+对应于其他语言的数组和字典。
+
+```dart
+var arr1 = [1, 2, 3];
+var arr2 = List.of(['h', 'j', 'm']); // 这写的有问题吧❓❓ 都是数组了还要去List.of一下
+arr1.add('h'); // Error，Dart会根据上下文进行类型推荐List<int>，不能添加String 或 double等非init 类型数据
+arr2.forEach((v) => print(v)); // 单个参数也不可省略括号
+// 为语言清晰，可增加类型约束
+var arr1 = <String>['h', 'j', 'm'];
+var arr2 = new List<int>.of([1, 2, 3]);
+arr2.add(499);
+print(arr2 is List<int>); // true
+```
+
+```dart
+var map1 = {"name": "Tom", 'sex': 'male'}; 
+var map2 = new Map();
+map2['name'] = 'Tom';
+map2['sex'] = 'male';
+map2.forEach((k,v) => print('${k}: ${v}'));
+// 为语言清晰，可增加类型约束
+var map1 = {'name': 'Tom','sex': 'male',};
+var map2 = new Map();map2['name'] = 'Tom';map2['sex'] = 'male';
+map2.forEach((k,v) => print('${k}: ${v}')); 
+print(map2 is Map); // true
+```
+
+可以使用 List<num, String> 等使 List 支持多种类型内部元素，不建议使用 List<dynamic>。遍历集合时，可通过 is 判断可枚举类型，也可以通过 runtimeType 判断类型。
+
+List 指定 length 后，默认数值都为null ，这是由于未初始化的变量都是 null特性，并且这时候可以在安全下标内进行赋值。但是不指定 length 的 List 则无法指定下标赋值，因为超出了下标边界。
+
+### 常量
+
+const，编译期常量。final，运行是常量。
+
+```dart
+const count = 2; // const 必须直接赋值一个字面量
+var x = 20;
+var y = 30;
+final z = x / y; // final 可以赋值一个字面量 或变量 或公式，但是一旦赋值不能改变
+```
+
+## 07 函数、类、运算符
+
+### 函数
+
+函数也是对象，类型 Function。
+
+```
+bool isZero(int number) {
+	return number == 0;
+}
+bool isZero(int number) => number == 0;
+// 定义可选命名参数，增加默认值
+void enable({bool bold, bool hidden = false}) => print();
+// 定义可忽略参数
+void enable(bool bold, [bool hidden = false], [bool lg]) => print();
+```
+
+### 类
+
