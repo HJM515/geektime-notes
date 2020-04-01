@@ -8,7 +8,7 @@ Windows 10 家庭中文版
 
 下载地址：https://flutterchina.club/setup-windows/
 
-### Flutter SDKZ安装
+### Flutter SDK安装
 
 1. 配置镜像，添加环境变量。或者翻墙。（翻墙应该就不需要配镜像环境变量）
 2. 下载[最新安装包](https://flutter.dev/docs/development/tools/sdk/releases#windows)，解压到你的目标安装目录，如d:\dev\flutter。
@@ -23,8 +23,6 @@ FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 ```
 
 其实这个时候，在vs code里安装flutter插件，然后flutter create fultter_app就可以创建项目，但是没有虚拟机项目运行不起来。哎！老老实实去装android studio。
-
-按官网的步骤来就行，基本没有什么坑。就是不知道为什么加到我的用户变量里不起作用，就只好加到系统变量里了。
 
 ## Android Studio/SDK
 
@@ -57,14 +55,16 @@ https://developer.android.google.cn/studio?hl=zh-cn
 
 ## 踩坑
 
-### 虚拟机点击运行没反应
+### 01 虚拟机点击运行没反应
 
 可能是Intel x86 Emulator Accelerator(HAXM)没有装好。
 
-1. sdk manager > sdk tools，查看列表中Intel x86 Emulator... 安装状态，如果没装好下一步。
-2. 勾选Intel x86 Emulator... ，点击apply，安装成功后重新启动android studio再次运行虚拟机应该就可以了。
+1. 双击shift，搜索sdk manager，切换tab至SDK Tools。
+2. 查看列表中Intel x86 Emulator... 安装状态。
+3. 如果没装，勾选Intel x86 Emulator... ，点击apply，安装成功后重新启动android studio。
+4. 重新运行虚拟机，查看是否可以启动。
 
-### Intel x86 Emulator Accelerator(HAXM)安装失败
+### 02 Intel x86 Emulator Accelerator(HAXM)安装失败
 
 报错信息如下：（可能前面android studio/SDK安装就保错了，只是没注意）
 
@@ -83,7 +83,22 @@ Please ensure Hyper-V is disabled in Windows Features, or refer to the Intel HAX
 
 成功关闭后，再安装Intel x86 Emulator Accelerator(HAXM)就成功啦。
 
-### Please define ANDROID_SDK_ROOT
+### 03 Enable VT-x in your BIOS
+
+运行虚拟机，弹出警告框，内容如下：
+
+```
+Intel HAXM is required to run this AVD.
+VT-x is disabled in BIOS.
+Enable VT-x in your BIOS security settings (refer to documentation for your computer).
+```
+
+1. 进入BIOS模式。windows10 ：设置 > 更新和安全 > 恢复 > 高级启动 立即重新启动 > 疑难解答 > 高级选项 UEFI固件设置，确定后重启，进入bios。
+2. config > CPU > Intel Virtualization Technology ，状态改为Enabled；Security > Virtualization > Intel(R) Virtualization Technology，状态改为Enabled。F10 保存退出。
+3. 开机， Ctrl + Shift + Esc，进入任务管理器，性能tab 面板中，查看虚拟化状态为已启用。
+4. 重新运行虚拟机，查看是否可以启动。
+
+### 04 Please define ANDROID_SDK_ROOT
 
 装好了Intel x86 Emulator Accelerator(HAXM)，运行虚拟机，报错如下：
 
@@ -92,16 +107,27 @@ Emulator: Process finished with exit code 1
 Emulator: PANIC: Cannot find AVD system path. Please define ANDROID_SDK_ROOT
 ```
 
-添加环境变量
+1. 添加环境变量，重新创建虚拟机。
+
 
 ```
 ANDROID_SDK_HOME=d:\dev\android_adv	 手动新建的目录，存放adv相关文件
 ANDROID_HOME=d:\dev\android_sdk       Android SDK安装路径
 ```
 
-重新创建虚拟机，应该就能成功了。
+### 05 Detected ADB
 
-### running gradle task 'assembleDebug'...
+运行虚拟机，虚拟机正常显示，但弹出Detected ADB的警告框，具体内容如下：
+
+```
+"The ADB binary at C:\Users\siviw\AppData\Local\Android\Sdk\platform-tools\adb.exe is obsolete and has serious performance problems with the Android Emulator. Please update to a newer version to get significantly faster app / file transfer".
+```
+
+1. 双击shift，搜索sdk manager，切换tab至SDK Tools。
+2. 勾选右下方复选框 show package Details，查看 Android SDK Build-Tools 是否安装的最新版本。
+3. 如果不是就安装，如果安装了还出现这个提示框，勾选 Never show this again即可。
+
+### 06 running gradle task 'assembleDebug'...
 
 运行flutter应用，长时间卡在 running gradle task 'assembleDebug'
 
@@ -135,7 +161,7 @@ allprojects {
     }
 }
 
-flutter安装目录 D:\dev\flutter\packages\flutter_tools\gradle
+flutter安装目录 D:\dev\flutter\packages\flutter_tools\gradle\flutter.gradle
 buildscript {
     repositories {
         // 这里做了修改，使用国内阿里的代理
@@ -153,7 +179,7 @@ buildscript {
 
 按上面的配置好了，重新运行，还是很长时间。终止后再重新运行，再终止在重新运行，第三次终于可以啦。Σ( ° △ °|||)︴
 
-### Android license status unknown
+### 07 Android license status unknown
 
 运行flutter doctor，提示Android license status unknown，具体如下：
 
@@ -173,8 +199,12 @@ Try re-installing or updating your Android SDK,
 visit https://flutter.dev/setup/#android-setup for detailed instructions.
 ```
 
-解决方法：打开android studio，双击shift，搜索sdk manager，切换tab至SDK Tools，右下方复选框 取消勾选 Hide Obsolete packages，然后安装列表中的Android SDK Tools（虽然它即将或已经废除）。完成后，重新打开命令行，运行 flutter doctor --android-licenses -v，一路y即可完成证书安装。再运行flutter doctor，就不会再由这个错误提示了。
+1. 打开android studio，双击shift，搜索sdk manager，切换tab至SDK Tools。
+2. 右下方复选框 取消勾选 Hide Obsolete packages，安装列表中的Android SDK Tools（虽然它即将或已经废除）。
+3. 完成后，重新打开命令行，运行 flutter doctor --android-licenses -v，一路y即可完成证书安装。再运行flutter doctor，就不会再由这个错误提示了。
 
 ## 总结
 
-Android Studio对windows用户真心不怎么友好。搞了一晚上才装好。另外，我没有装java环境，我觉得flutter项目用不到。目前可以正常运行。
+Android Studio对windows用户真心不怎么友好。第一次在家里的电脑装遇到了坑 01、02、04、06、07。第二次在公司电脑装，只遇到了03、05、06、07，还算顺利。
+
+我没有装java环境，我觉得flutter项目用不到。目前可以正常运行。
