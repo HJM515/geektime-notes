@@ -325,3 +325,66 @@ final y = Vector(2, 2);
 final z = Vector(1, 1);
 print(x == (y + z));    // true
 ```
+
+## 09 Widget、Element、RenderObject
+
+Flutter 把视图数据的组织和渲染抽象为三部分，Widget、Element、RenderObject。
+
+渲染过程
+
+1. 遍历Widget树生成对应的Element树。
+2. 创建相应的RenderObject并关联到Element.renderObject属性上。
+3. 构建成RenderObject树（布局和绘制）。
+4. 合成和渲染有Skia搞定。在 VSync 信号同步时直接从渲染树合成 Bitmap，然后提交给 GPU。
+
+### Widget
+
+Widget 是控件实现的基本逻辑单位，存储视图渲染的配置信息，包括布局、渲染属性、事件响应信息等。
+
+Widget具有不可变性，当视图渲染的配置信息变化是，会重建Widget树进行数据更新。
+
+Widget 的配置数据发生了改变，那么持有该 Widget 的 Element 节点也会被标记为 dirty。在下一个周期的绘制时，Flutter 就会触发 Element 树的更新，并使用最新的 Widget 数据更新自身以及关联的 RenderObject 对象，接下来便会进入 Layout 和 Paint 的流程。
+
+### Element
+
+Element是Widget的一个实例化对象，是可变的。Element树将Widget树的变化做了抽象，只将真正修改的部分同步到RenderObject树，最大程度降低对真实渲染视图的修改。
+
+### RenderObject
+
+RenderObject 是主要负责实现视图渲染的对象，布局和绘制在RenderObject中完成。
+
+RenderObjectWidget，一个抽象类，拥有createElement、createRenderObject、updateRenderObject方法。是渲染的起点（对象的载体），自己不负责他们的创建和更新，但是提供了创建和更新的方法让框架在合适的时机调用。❓❓ 抽象类不是一种类似接口的概念吗？
+
+RenderObjectElement，RenderObject 的创建与更新，其实是在 RenderObjectElement 类中完成的。
+
+## 10 StatelessWidget、StatefulWidget
+
+Flutter 的视图开发是声明式的，其核心设计思想就是将视图和数据分离。与Vue、React设计思路类似。
+
+命令式编程强调精确控制过程细节，声明式编程强调通过意图输出结果整体。
+
+### StatelessWidget
+
+Widget 采用由父到子、自顶向下的方式进行构建。
+
+父 Widget 能通过初始化参数完全控制其 UI 展示效果，就可以使用 StatelessWidget 来设计构造函数接口。如自定义的弹框控件，可使用StatelessWidget。
+
+### StatefulWidget
+
+通过 createState 方法创建了一个指定类型 的 state 对象，然后由这个对象负责视图的构建。State 对象通过  方法监听到属性发生了变化，立即调用 setState 方法通知 Flutter 框架。
+
+StatefulWidget 的滥用会直接影响 Flutter 应用的渲染性能。在 State 类中调用 setState 方法更新数据，会触发视图的销毁和重建，也将间接地触发其每个子 Widget 的销毁和重建。即使不去主动setState，对于Stateful在特定的时机也会rebuild的。
+
+有人用 StatelessWidget + Provide 能取代一部分 StatefulWidget 的功能
+
+```dart
+ const Image({
+    Key key, 
+    @required this.image,
+    // 其他参数
+  }) : assert(image != null),
+       super(key: key);
+// 1.key用在Element复用过程中，控制控件如何取代树中的另一个控件。比如你在父Widget用新的image重建了Image，底层Element还是能复用的。
+// 2.assert是断言，只在debug中生效。
+```
+
