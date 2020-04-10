@@ -388,3 +388,92 @@ StatefulWidget 的滥用会直接影响 Flutter 应用的渲染性能。在 Stat
 // 2.assert是断言，只在debug中生效。
 ```
 
+## 11 生命周期
+
+### State生命周期
+
+分为三个阶段：创建（插入视图树）、更新（在视图树中存在）、销毁（从视图树中移除）。
+
+#### 创建
+
+1. 构造方法：调用StatefulWidget.createState()创建State，接受父Widget传递的初始化UI配置参数。
+2. initState：在State对象被插入视图树时调用（仅一次），可在其中完成变量默认值等初始化工作。
+3. didChangeDependencies：处理State对象依赖关系变化，在initState调用结束后被Flutter调用。
+4. build：构建视图，创建一个Widget返回。
+
+#### 更新
+
+以下三个方法被调用，Flutter会销毁老Widget，调用build方法重建Widget。
+
+- setState
+- didChangeDependencies：如系统语言、应用主题改变时会被调用。
+- didUpdateWidget：如父Widget触发重建，热重载时会被调用。
+
+#### 销毁
+
+- deactivate：当组件的可见状态发生变化时会被调用，State会被暂时从视图移除。如页面切换。
+- dispost：当State被永久从视图树中移除时被调用，组件被销毁，可在这里完成资源释放、移除监听、清理环境。
+
+| 方法名                | 功能                           | 调用时机                               | 调用次数 |
+| --------------------- | ------------------------------ | -------------------------------------- | -------- |
+| 构造方法              | 接受父Widget传递的初始化UI配置 | 创建State时                            | 1        |
+| initState             | 与渲染相关的初始化工作         | 在State被插入视图树时                  | 1        |
+| didChangeDependencies | 处理State对象依赖关系变化      | initState之后及State对象依赖关系变化时 | >=1      |
+| build                 | 构建视图                       | State准备好数据需要渲染时              | >=1      |
+| setState              | 触发视图重建                   | 需要刷新UI时                           | >=1      |
+| didUpdateWidget       | 处理Widget的配置变化           | 父Widget setState触发子Widget重建时    | >=1      |
+| deactivate            | 组件被移除                     | 组件不可见时                           | >=1      |
+| dispose               | 组件被销毁                     | 组件被永久移除                         | 1        |
+
+### App生命周期
+
+利用WidgetsBindingObserver类，监听App的生命周期并做响应处理。
+
+WidgetsBinding是一个连接上层Widget回调与底层Flutter引擎实现的一个抽象胶水类，在不同的平台有不同的实现（比如在单元测试中是TestWidgetsFlutterBinding，在UI开发中是WidgetsFlutterBinding），所以我们需要在代码中用WidgetsBinding.instance获取特定的实例，而WidgetsBindingObserver只是一个接口而已
+
+```dart
+abstract class WidgetsBindingObserver {
+  //页面pop
+  Future<bool> didPopRoute() => Future<bool>.value(false);
+  //页面push
+  Future<bool> didPushRoute(String route) => Future<bool>.value(false);
+  //系统窗口相关改变回调，如旋转
+  void didChangeMetrics() { }
+  //文本缩放系数变化
+  void didChangeTextScaleFactor() { }
+  //系统亮度变化
+  void didChangePlatformBrightness() { }
+  //本地化语言变化
+  void didChangeLocales(List<Locale> locale) { }
+  //App生命周期变化
+  void didChangeAppLifecycleState(AppLifecycleState state) { }
+  //内存警告回调
+  void didHaveMemoryPressure() { }
+  //Accessibility相关特性回调
+  void didChangeAccessibilityFeatures() {}
+}
+```
+
+#### 生命周期回调
+
+didChangeAppLifecycleState回调函数。AppLifecycleState类型参数state状态包括以下三个：
+
+- resumed：可见，能响应用户输入。
+- inactive：醋鱼不活动状态，无法处理用户响应。
+- paused：不可见且不能响应用户输入，但在后台继续活动着。
+
+前台 切到 后台，resumed > inactive > paused。
+
+#### 帧绘制回调
+
+在组件渲染之后做一些与显示安全相关的操作。
+
+```dart
+WidgetsBinding.instance.addPostFrameCallback((_){
+    print("单次Frame绘制回调");//只回调一次
+});
+WidgetsBinding.instance.addPersistentFrameCallback((_){
+      print("实时Frame绘制回调");//每帧都回调
+});
+```
+
