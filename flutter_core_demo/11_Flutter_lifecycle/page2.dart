@@ -81,5 +81,47 @@ class Child extends StatefulWidget {
 }
 
 class _ChildState extends State<Child> {
-  
+  // Widget第一次插入Widget树时会被调用
+  @override
+  void initState() {
+    super.initState();
+    print('page2 child initState...');
+  }
+
+  /**
+   * 初始化initState之后立即调用
+   * State依赖关系发生变化时调用
+   */
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('page2 child didChangeDependencies');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('child build...');
+    return Text('点击按钮查看状态变化 count:${widget.count}');
+  }
+
+  // 状态改变时调用
+  @override
+  void didUpdateWidget(Child oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('page2 child didUpdateWidget');
+  }
+
+  // State对象从树中被移除时调用
+  @override
+  void deactivate() {
+    super.deactivate();
+    print('page2 child deactivate...');
+  }
+
+  // State对象从树中永久移除时调用
+  @override
+  void dispose() {
+    super.dispose();
+    print('page2 child dispose...');
+  }
 }

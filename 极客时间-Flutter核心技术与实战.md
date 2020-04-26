@@ -477,3 +477,67 @@ WidgetsBinding.instance.addPersistentFrameCallback((_){
 });
 ```
 
+## 12/13 经典控件：文本、图片、按钮、UiTableView、ListView
+
+### 文本
+
+Text单一样式文本，Text.rich混合样式的富文本。控制参数：
+
+- 布局：textAlign、textDirection、maxLines、overflow。
+- 展示样式：fontFamily、fontSize、color、shadows等，统一封装在style中。
+
+TextSpan，定义字符片段。
+
+### 图片
+
+Image。 Image.asset() 本地图片、Image.file() 本地文件、Image.network() 网络图片。控制参数包括fit、centerSlice、repeat等。
+
+FadeInImage控件，提供图片占位功能。
+
+```dart
+FadeImage.assetNetwork(
+    placeholder: 'assets/loading.gif',
+    image: 'https://xx/xx/xxx.jpg',
+    fit: BoxFit.cover,
+    width: 200,
+    height: 200
+)
+```
+
+CachedNetworkImage控件，支持缓存到文件系统，支持加载占位图和错误占位图。
+
+```dart
+CachedNetworkImage(
+    imageUrl: 'http://xxx/xxx/xxx.jpg',
+    placeholder: (context, url) => CircularProgressIndicator(),
+    errorWidget: (context, url, error) => Icon(Icons.error)
+)
+```
+
+### 按钮
+
+FloatingActionButton、RaiseButton、FlatButton。
+
+### 列表
+
+ListView，支持垂直和水平方向滚动，使用ListView.builder大量创建子视图，对于定高的列表项视图，提前指定 itemExtent 比让子 Widget 自己决定要更高效。
+
+CustomScrollView，引入了 Sliver 的概念，将多重嵌套的可滚动视图的交互与布局进行统一接管。
+
+ScrollController 与 NotificationListener，前者与 ListView 绑定，进行滚动信息的监听，进行相应的滚动控制；而后者，通过将 ListView 纳入子 Widget，实现滚动事件的获取。
+
+## 14 布局
+
+### 单子Widget布局
+
+- Container：设置padding、margin、width、height、alignment、decoration(color、borderRadius)。
+- Padding：仅设置padding。
+- Center：水平、垂直居中。
+
+### 多子Widget布局
+
+Row、Column 与 Expanded。
+
+### 层叠Widget布局
+
+Stack提供了层叠布局的容器，Positioned提供了设置子Widget位置的能力。
